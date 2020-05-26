@@ -1,0 +1,54 @@
+<script type="text/x-red" data-template-name="slackStatus">
+    <div class="form-row">
+        <label for="node-input-slackCertificate"><i class="fa fa-user"></i> Slack</label>
+        <input type="text" id="node-input-slackCertificate">
+    </div>
+    <div class="form-row">
+        <label for="node-input-childpath"><i class="fa fa-sitemap"></i> Status</label>
+        <input type="text" id="node-input-childpath" placeholder="path-to/the/data">
+    </div>
+    <div class="form-row">
+        <label for="node-input-method"><i class="fa fa-terminal"></i> Icon</label>
+        <select id="node-input-method" type="text" style="width:70%" text-center>
+        <option value="get" default>1</option>
+        <option value="set">2</option>
+        <option value="push">3</option>
+        <option value="update">4</option>
+        <option value="msg.method">[msg.method]</option>
+        </select>
+    </div> 
+</script>
+
+<script type="text/x-red" data-help-name="slackStatus">
+    <p>Slack status</p>
+</script>
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('slackStatus', {
+        category: 'Slack',
+        color: "#fdd0a2",
+        defaults: {
+            slackCertificate: { type: 'slackCertificate', required: true },
+            client_email: { value: "" },
+            private_key: { value: "" },
+            data: { value: "" },
+            childpath: { value: "", validate: RED.validators.typedInput("propertyType") },
+            propertyType: { value: "str" },
+            method: { value: 'get', required: true },
+            newchildpath: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "slack.png",
+        align: "left",
+        label: 'Slack status',
+        paletteLabel: 'Slack status',
+        oneditprepare: function () {
+            $("#node-input-childpath").typedInput({ default: this.propertyType || 'str', types: ['str', 'msg', 'flow', 'global'] });
+        },
+        oneditsave: function () {
+            this.propertyType = $("#node-input-childpath").typedInput('type');
+        }
+    });
+</script>
