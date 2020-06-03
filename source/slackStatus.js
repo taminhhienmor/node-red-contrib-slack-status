@@ -24,7 +24,7 @@ module.exports = function (RED) {
             // check token input
             if (typeof(slackCertificate.token) == "undefined") {
                 node.error("Token is not empty", {});
-                node.status({fill: "red", shape: "ring", text: "Token is not empty"});
+                node.status({fill: "red", shape: "ring", text: "Token can't be empty"});
                 return;
             }
 
@@ -49,7 +49,13 @@ module.exports = function (RED) {
             }
 
             // check msg icon
-            if(icon == "msg.icon") icon = msg.icon
+            var flagIcon = false;
+            if(icon == "msg.icon") {
+                icon = msg.icon
+                flagIcon = true;
+            }
+
+            if(flagIcon) icon = msg.icon;
 
             // change status profile
             var profileObj = {
