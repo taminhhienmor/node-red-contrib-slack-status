@@ -6,70 +6,93 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, n);
         var node = this;
 
-        var methodValue = n.method
-        var childPathProperty = n.childpath || ""
-        var propertyType = n.propertyType || "msg";
+        var icon = n.icon
+        var statusProperty = n.statusContent || ""
+        var statusType = n.statusType || "msg";
         var globalContext = this.context().global;
         var flowContext = this.context().flow;
 
         var slackCertificate = RED.nodes.getNode(n.slackCertificate);
 
+        const LINK_URL = "https://slack.com/api/users.profile.set"
+        const STATUS_EXP = 0
+        const METHOD_POST = "POST"
+
         node.on("input", function (msg) {
             node.status({});
 
-            // select method 
-            switch (methodValue) {
-                case "set":
-                    methodValue = "PUT"
-                    break;
-                case "push":
-                    methodValue = "POST"
-                    break;
-                case "update":
-                    methodValue = "PATCH"
-                    break;
-                case "remove":
-                    methodValue = "DELETE"
-                    break;
-                default:
-                    methodValue = methodValue
-                    break;
+            // check token input
+            if (typeof (slackCertificate.token) == "undefined") {
+                node.error("Token can't empty", {});
+                node.status({ fill: "red", shape: "ring", text: "Token can't empty" });
+                return;
             }
 
-            // select childPath
-            var childPath = "";
-            switch (propertyType) {
+            // get status
+            var status = "";
+            switch (statusType) {
                 case "str":
-                    childPath = childPathProperty
+                    status = statusProperty
                     break;
                 case "msg":
-                    childPath = msg[childPathProperty]
+                    status = msg[statusProperty]
                     break;
                 case "flow":
-                    childPath = flowContext.get(childPathProperty)
+                    status = flowContext.get(statusProperty)
                     break;
                 case "global":
-                    childPath = globalContext.get(childPathProperty)
+                    status = globalContext.get(statusProperty)
                     break;
                 default:
-                    childPath = childPathProperty
+                    status = statusProperty
                     break;
             }
 
-            if (methodValue == "setPriority" || methodValue == "setWithPriority") {
-                methodValue = "put"
-            } else if (methodValue == "msg.method" || methodValue == "") {
-                methodValue = msg.method
-            };
-
-            if (typeof msg.payload != 'number') {
-                newObj = msg.payload
+            // check msg icon
+            var flagIcon = false;
+            if (icon == "msg.icon") {
+                flagIcon = true;
+                icon = msg.icon;
+            }
+            if (flagIcon = true) {
+                icon = msg.icon;
+            }
+            // change status profile
+            var profileObj = {
+                "profile": {
+                    "status_text": status,
+                    "status_emoji": icon,
+                    "status_expiration": STATUS_EXP
+                }
             }
 
-            if (typeof newObj != 'object') {
-                newObj = JSON.parse(newObj)
+            // add object request param
+            var opts = {
+                method: METHOD_POST,
+                url: LINK_URL,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + slackCertificate.token
+                },
+                body: JSON.stringify(profileObj)
             };
 
+            request(opts, function (error, response, body) {
+                if (error) {
+                    node.error(error, {});
+                    node.status({ fill: "red", shape: "ring", text: "failed" });
+                    return;
+                } else {
+                    if (!JSON.parse(body).ok) {
+                        node.error(JSON.parse(body).error, {});
+                        node.status({ fill: "red", shape: "ring", text: "failed" });
+                        return;
+                    } else {
+                        msg.payload = "Slack presence status changed success";
+                        node.send(msg);
+                    }
+                }
+            })
         })
     }
 
