@@ -24,7 +24,7 @@ module.exports = function (RED) {
             // check token input
             if (typeof (slackCertificate.token) == "undefined") {
                 node.error("Token can't empty", {});
-                node.status({ fill: "red", shape: "ring", text: "Token can't empty" });
+                node.status({ fill: "red", shape: "ring", text: "Token can't be empty" });
                 return;
             }
 
