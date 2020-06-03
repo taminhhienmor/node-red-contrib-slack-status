@@ -2,7 +2,7 @@
 	"name": "node-red-contrib-slack-status",
 	"version": "0.0.1",
 	"author": "minh hien <taminhhien.mor.vn@gmail.com>",
-	"description": "The simplest of simple nodes with slack",
+	"description": "Set status with slack",
 	"dependencies": {
 		"request": "^2.88.0"
 	},
@@ -10,7 +10,8 @@
 		"node-red",
 		"slack",
 		"slack-status",
-		"status"
+		"status",
+		"emoji"
 	],
 	"node-red": {
 		"nodes": {
